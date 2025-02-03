@@ -1,22 +1,14 @@
-module Api.Endpoints.FpEndpoint
+module Api.Endpoints.Endpoint
 
-open System
-open System.Data
-open System.Reflection
-open System.Runtime.InteropServices.ComTypes
 open System.Text
 open System.Threading.Tasks
 open Falco
 open Falco.OpenApi
 open Falco.Routing
-open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Thoth.Json.Net
-
-let inline (^) f x= f x
 
 let resolveEnv<'env> (ctx: HttpContext) : 'env =
     let envType = typeof<'env>
@@ -63,7 +55,9 @@ let bodyWriter<'body> (encoder: Encoder<'body>) body ctx  = task {
     return! writeJson json ctx
 }
 
-let jsonEndpoint<'req, 'res, 'env> decoder encoder
+type ErrorResponse = { message: string }
+
+let jsonBody<'req, 'res, 'env> decoder encoder
     (handler: 'env -> 'req -> Task<'res>)
     (path: string)
     : HttpEndpoint =
@@ -82,61 +76,8 @@ let jsonEndpoint<'req, 'res, 'env> decoder encoder
         ContentTypes = [ "application/json" ]
     }
     |> OpenApi.returns {
-        Return = {| text = "error" |}.GetType()
+        Return = typeof<ErrorResponse>
         Status = 400
         ContentTypes = [ "application/json" ]
     } 
 
-
-module Encode =
-    let listOf encoder = List.map encoder >> Encode.list
-
-module AuthByGoogle =
-    type Request = {  google_token: string }
-    type Response = {  jwt_token: string; roles: string list }
-    
-    let decoder: Decoder<Request> = Decode.object ^ fun x -> {
-        google_token = x.Required.Field "google_token" Decode.string
-    }
-    
-    let encoder : Encoder<Response> = fun x -> Encode.object [
-        "jwt_token", Encode.string x.jwt_token 
-        "roles",     Encode.listOf Encode.string x.roles 
-    ]
-    
-    let handler (env: {| logger: ILogger<Request> |}) (req: Request) = task {
-        env.logger.LogInformation("Google token: {google_token}", req.google_token)
-        return { jwt_token = "token"; roles = ["admin"; "user"] }
-    } 
-    
-    let endpoint = jsonEndpoint decoder encoder handler
-
-module CreateTrigger =
-    type Request = { name: string }
-    type Response =
-        | Text of {| text: string |}
-        | Button of {| text: string; url: string; icon: string |}
-    
-    let decoder: Decoder<Request> = Decode.object ^ fun x -> {
-        name = x.Required.Field "name" Decode.string 
-    }
-    
-    let encoder : Encoder<Response> = function
-        | Button x -> Encode.object [
-            "type", Encode.string "button"
-            "text", Encode.string x.text 
-            "url", Encode.string x.url
-            "icon", Encode.string x.icon
-            ]
-        | Text x -> Encode.object [
-            "type", Encode.string "text"
-            "text", Encode.string x.text 
-            ]
-        
-    let handler (env: {| logger: ILogger<Request> |}) (req: Request) = task {
-        env.logger.LogInformation("Trigger name: {name}", req.name)
-        return Button {|  text = "text"; url = "url"; icon = "icon"|}
-    } 
-    
-    let endpoint = jsonEndpoint decoder encoder handler
-        

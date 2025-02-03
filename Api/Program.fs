@@ -1,9 +1,7 @@
-﻿open Api.Endpoints
+﻿open Api
 open Falco
-open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Falco.OpenApi.FalcoOpenApiExtensions
-open Microsoft.AspNetCore.OpenApi
 open Microsoft.Extensions.DependencyInjection
 open Scalar.AspNetCore
 
