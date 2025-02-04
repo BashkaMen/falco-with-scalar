@@ -7,16 +7,21 @@
 
     <ItemGroup>
         <Compile Include="Prelude.fs" />
-        <Compile Include="Storage\IStorage.fs" />
+        <Compile Include="Core\AppUser.fs" />
+        <Compile Include="Storage\Storage.fs" />
+        <Compile Include="Storage\CustomStorages.fs" />
         <Compile Include="Endpoints\Endpoint.fs" />
         <Compile Include="Endpoints\AuthByGoogle.fs" />
         <Compile Include="Router.fs" />
+        <Compile Include="StorageImpl\UserDal.fs" />
+        <Compile Include="StorageImpl\UserStorage.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Falco" Version="5.0.0" />
       <PackageReference Include="Falco.OpenAPI" Version="1.0.0" />
+      <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
       <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
       <PackageReference Include="Scalar.AspNetCore" Version="2.0.9" />
