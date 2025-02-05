@@ -25,8 +25,6 @@ let encoder : Encoder<Response> = fun x -> Encode.object [
 
 let private mkJwt (x: AppUser) : string = $"todo token - {x.id}"
 
-
-
 let handler
     (env: {| logger: ILogger<Request * Response>
              storage: IUserStorage |})
